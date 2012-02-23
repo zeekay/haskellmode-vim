@@ -21,12 +21,12 @@ if (!exists("b:ghc_staticoptions"))
   let b:ghc_staticoptions = ''
 endif
 
-" set makeprg (for quickfix mode) 
+" set makeprg (for quickfix mode)
 execute 'setlocal makeprg=' . g:ghc . '\ ' . escape(b:ghc_staticoptions,' ') .'\ -e\ :q\ %'
 "execute 'setlocal makeprg=' . g:ghc .'\ -e\ :q\ %'
 "execute 'setlocal makeprg=' . g:ghc .'\ --make\ %'
 
-" quickfix mode: 
+" quickfix mode:
 " fetch file/line-info from error message
 " TODO: how to distinguish multiline errors from warnings?
 "       (both have the same header, and errors have no common id-tag)
@@ -64,7 +64,7 @@ endif
 let g:haskell_functions = "ghc"
 
 " avoid hit-enter prompts
-set cmdheight=3
+" set cmdheight=3
 
 " edit static GHC options
 " TODO: add completion for options/packages?
@@ -86,15 +86,15 @@ function! GHC_ShowType(addTypeDecl)
   endif
   let [_,symb,qual,unqual] = namsym
   let name  = qual=='' ? unqual : qual.'.'.unqual
-  let pname = ( symb ? '('.name.')' : name ) 
+  let pname = ( symb ? '('.name.')' : name )
   let ok    = GHC_HaveTypes()
   if !has_key(b:ghc_types,name)
     redraw " this happens to hide messages from GHC_HaveTypes
-    if &modified 
+    if &modified
       let comment = " (buffer has unsaved changes)"
     elseif !ok
       let comment = " (try :make to see any GHCi errors)"
-    else 
+    else
       let comment = ""
     endif
     echo pname "type not known".comment
@@ -119,7 +119,7 @@ if has("balloon_eval")
   set balloondelay=600
   set balloonexpr=GHC_TypeBalloon()
   function! GHC_TypeBalloon()
-    if exists("b:current_compiler") && b:current_compiler=="ghc" 
+    if exists("b:current_compiler") && b:current_compiler=="ghc"
       let [line] = getbufline(v:beval_bufnr,v:beval_lnum)
       let namsym = haskellmode#GetNameSymbol(line,v:beval_col,0)
       if namsym==[]
@@ -128,7 +128,7 @@ if has("balloon_eval")
       let [start,symb,qual,unqual] = namsym
       let name  = qual=='' ? unqual : qual.'.'.unqual
       let pname = name " ( symb ? '('.name.')' : name )
-      if b:ghc_types == {} 
+      if b:ghc_types == {}
         redraw
         echo "no type information (try :GHGReload)"
       elseif (b:my_changedtick != b:changedtick)
@@ -138,9 +138,9 @@ if has("balloon_eval")
       " silent call GHC_HaveTypes()
       if b:ghc_types!={}
         if has("balloon_multiline")
-          return (has_key(b:ghc_types,pname) ? split(b:ghc_types[pname],' -- ') : '') 
+          return (has_key(b:ghc_types,pname) ? split(b:ghc_types[pname],' -- ') : '')
         else
-          return (has_key(b:ghc_types,pname) ? b:ghc_types[pname] : '') 
+          return (has_key(b:ghc_types,pname) ? b:ghc_types[pname] : '')
         endif
       else
         return ''
@@ -162,7 +162,7 @@ function! GHC_ShowInfo()
   let [_,symb,qual,unqual] = namsym
   let name = qual=='' ? unqual : (qual.'.'.unqual)
   let output = GHC_Info(name)
-  pclose | new 
+  pclose | new
   setlocal previewwindow
   setlocal buftype=nofile
   setlocal noswapfile
@@ -240,7 +240,7 @@ endfunction
 function! GHC_BrowseMultiple(imports,modules)
   redraw
   echo "browsing modules " a:modules
-  let command = ":browse " . join( a:modules, " \n :browse ") 
+  let command = ":browse " . join( a:modules, " \n :browse ")
   let command = substitute(command,'\(:browse \(\S*\)\)','putStrLn "-- \2" \n \1','g')
   let output = system(g:ghc . ' ' . b:ghc_staticoptions . ' -v0 --interactive ' . expand("%") , command )
   return GHC_Process(a:imports,output)
@@ -333,14 +333,14 @@ function! GHC_Process(imports,output)
       let id   = substitute(id, '^(\(.*\))$', '\1', '')
       let type = substitute( type, '\s\+', " ", "g" )
       " using :browse *<current>, we get both unqualified and qualified ids
-      if current_module " || has_key(imports[0],module) 
+      if current_module " || has_key(imports[0],module)
         if has_key(b:ghc_types,id) && !(matchstr(b:ghc_types[id],escape(type,'[].'))==type)
           let b:ghc_types[id] .= ' -- '.type
         else
           let b:ghc_types[id] = type
         endif
       endif
-      if 0 " has_key(imports[1],module) 
+      if 0 " has_key(imports[1],module)
         let qualid = module.'.'.id
         let b:ghc_types[qualid] = type
       endif
@@ -361,7 +361,7 @@ let s:ghc_templates = ["module _ () where","class _ where","class _ => _ where",
 
 " use ghci :browse index for insert mode omnicompletion (CTRL-X CTRL-O)
 function! GHC_CompleteImports(findstart, base)
-  if a:findstart 
+  if a:findstart
     let namsym   = haskellmode#GetNameSymbol(getline('.'),col('.'),-1) " insert-mode: we're 1 beyond the text
     if namsym==[]
       redraw
@@ -374,7 +374,7 @@ function! GHC_CompleteImports(findstart, base)
     let res = []
     let l   = len(a:base)-1
     call GHC_HaveTypes()
-    for key in keys(b:ghc_types) 
+    for key in keys(b:ghc_types)
       if key[0 : l]==a:base
         let res += [{"word":key,"menu":":: ".b:ghc_types[key],"dup":1}]
       endif
@@ -397,9 +397,9 @@ set omnifunc=GHC_CompleteImports
 map <LocalLeader>ct :call GHC_CreateTagfile()<cr>
 function! GHC_CreateTagfile()
   redraw
-  echo "creating tags file" 
+  echo "creating tags file"
   let output = system(g:ghc . ' ' . b:ghc_staticoptions . ' -e ":ctags" ' . expand("%"))
-  " for ghcs older than 6.6, you would need to call another program 
+  " for ghcs older than 6.6, you would need to call another program
   " here, such as hasktags
   echo output
 endfunction
@@ -456,7 +456,7 @@ endfunction
 
 " no need to ask GHC about its supported languages and
 " options with every editing session. cache the info in
-" ~/.vim/haskellmode.config 
+" ~/.vim/haskellmode.config
 " TODO: should we store more info (see haskell_doc.vim)?
 "       move to autoload?
 "       should we keep a history of GHC versions encountered?
